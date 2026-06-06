@@ -6,7 +6,6 @@ import com.example.onlinecoursesclient.domain.repository.UserRepository
 class UpdateCurrentUserAgeUseCase(
     private val repository: UserRepository
 ) {
-    //  Только age! email/firstName/lastName получаем внутри RepositoryImpl
     suspend operator fun invoke(age: Int): User? {
         return repository.updateCurrentUserAge(age)
     }

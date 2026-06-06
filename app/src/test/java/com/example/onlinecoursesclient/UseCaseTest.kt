@@ -129,6 +129,9 @@ class MockUserRepository : UserRepository {
     }
 
     override suspend fun logout() { currentUser = null }
+    override suspend fun createUser(email: String, firstName: String, lastName: String) {
+        currentUser = User("uid123", email, firstName, lastName, null)
+    }
     fun setCurrentUser(user: User) { currentUser = user }
 }
 

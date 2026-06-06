@@ -9,9 +9,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -19,9 +22,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.onlinecoursesclient.ui.viewmodel.CoursesViewModel
-import androidx.compose.material3.Button
 import com.example.onlinecoursesclient.domain.usecase.GetShortDescriptionUseCase
+import com.example.onlinecoursesclient.ui.viewmodel.CoursesViewModel
 
 @Composable
 fun MyCoursesScreen(
@@ -30,12 +32,32 @@ fun MyCoursesScreen(
     onCourseClick: (Int) -> Unit
 ) {
     val myCourses by viewModel.myCourses.collectAsState()
-
+    val showCancelDialog by viewModel.showCancelDialog.collectAsState()
+    val pendingCancelCourseId by viewModel.pendingCancelCourseId.collectAsState()
 
     val getShortDescription = remember { GetShortDescriptionUseCase() }
 
     LaunchedEffect(Unit) {
         viewModel.loadCurrentUserCourses()
+    }
+
+    // Диалог подтверждения отмены
+    if (showCancelDialog && pendingCancelCourseId != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissCancelDialog() },
+            title = { Text("Подтверждение") },
+            text = { Text("Вы уверены, что хотите отменить запись?") },
+            confirmButton = {
+                TextButton(onClick = { viewModel.confirmCancelEnrollment() }) {
+                    Text("Да")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissCancelDialog() }) {
+                    Text("Нет")
+                }
+            }
+        )
     }
 
     LazyColumn(
@@ -78,7 +100,6 @@ fun MyCoursesScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-
                         Text(
                             text = getShortDescription(course.description),
                             maxLines = 3,
@@ -93,7 +114,7 @@ fun MyCoursesScreen(
 
                         Button(
                             onClick = {
-                                viewModel.cancelCurrentUserEnrollment(course.id)
+                                viewModel.onCancelEnrollmentClicked(course.id)
                             }
                         ) {
                             Text("Отменить запись")

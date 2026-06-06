@@ -12,11 +12,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -25,8 +27,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.onlinecoursesclient.ui.viewmodel.CoursesViewModel
 import com.example.onlinecoursesclient.domain.usecase.GetParagraphsUseCase
+import com.example.onlinecoursesclient.ui.viewmodel.CoursesViewModel
 
 @Composable
 fun CourseDetailsScreen(
@@ -38,10 +40,10 @@ fun CourseDetailsScreen(
     val courses by viewModel.courses.collectAsState()
     val myCourses by viewModel.myCourses.collectAsState()
     val myEnrollments by viewModel.myEnrollments.collectAsState()
-
+    val showCancelDialog by viewModel.showCancelDialog.collectAsState()
+    val pendingCancelCourseId by viewModel.pendingCancelCourseId.collectAsState()
 
     val getParagraphs = remember { GetParagraphsUseCase() }
-
 
     LaunchedEffect(Unit) {
         if (courses.isEmpty()) {
@@ -59,6 +61,25 @@ fun CourseDetailsScreen(
     }
 
     val teacher = enrollment?.teacher
+
+    // Диалог подтверждения отмены
+    if (showCancelDialog && pendingCancelCourseId == courseId) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissCancelDialog() },
+            title = { Text("Подтверждение") },
+            text = { Text("Вы уверены, что хотите отменить запись?") },
+            confirmButton = {
+                TextButton(onClick = { viewModel.confirmCancelEnrollment() }) {
+                    Text("Да")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissCancelDialog() }) {
+                    Text("Нет")
+                }
+            }
+        )
+    }
 
     if (course == null) {
         Column(
@@ -126,7 +147,6 @@ fun CourseDetailsScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-
             val paragraphs = getParagraphs(course.description)
             Column {
                 paragraphs.forEachIndexed { index, paragraph ->
@@ -183,7 +203,7 @@ fun CourseDetailsScreen(
 
                     Button(
                         onClick = {
-                            viewModel.cancelCurrentUserEnrollment(course.id)
+                            viewModel.onCancelEnrollmentClicked(course.id)
                         }
                     ) {
                         Text("Отменить запись")

@@ -19,7 +19,7 @@ class ProfileViewModelFactory(
                 application = application,
                 getCurrentUserUseCase = GetCurrentUserUseCase(userRepository),
                 updateCurrentUserAgeUseCase = UpdateCurrentUserAgeUseCase(userRepository),
-                userRepository = userRepository  // Прокидываем
+                userRepository = userRepository
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

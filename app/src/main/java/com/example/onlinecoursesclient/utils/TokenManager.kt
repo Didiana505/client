@@ -6,7 +6,7 @@ import kotlin.coroutines.resume
 
 object TokenManager {
 
-    suspend fun getFirebaseToken(): String {
+    suspend fun getFirebaseToken(): String {//Получаем актуальный токен пользователя из Firebase
         return suspendCancellableCoroutine { continuation ->
             val user = FirebaseAuth.getInstance().currentUser
             if (user == null) {

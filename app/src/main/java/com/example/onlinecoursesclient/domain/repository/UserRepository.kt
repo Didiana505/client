@@ -14,4 +14,5 @@ interface UserRepository {
 
     //  Выход
     suspend fun logout()
+    suspend fun createUser(email: String, firstName: String, lastName: String)
 }

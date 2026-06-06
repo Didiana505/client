@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-
+import com.example.onlinecoursesclient.domain.usecase.CreateUserUseCase
 data class AuthUiState(
     val isLoading: Boolean = false,
     val isAuthenticated: Boolean = false,
@@ -19,7 +19,8 @@ data class AuthUiState(
 
 class AuthViewModel(
     private val loginUseCase: LoginUseCase,
-    private val registerUseCase: RegisterUseCase
+    private val registerUseCase: RegisterUseCase,
+    private val createUserUseCase: CreateUserUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -53,6 +54,7 @@ class AuthViewModel(
 
             registerUseCase(firstName, lastName, email, password)
                 .onSuccess { authResult ->
+                    createUserUseCase(email, firstName, lastName)
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         isAuthenticated = true,
@@ -76,12 +78,13 @@ class AuthViewModel(
 
     class Factory(
         private val loginUseCase: LoginUseCase,
-        private val registerUseCase: RegisterUseCase
+        private val registerUseCase: RegisterUseCase,
+        private val createUserUseCase: CreateUserUseCase
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
-                return AuthViewModel(loginUseCase, registerUseCase) as T
+                return AuthViewModel(loginUseCase, registerUseCase, createUserUseCase) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

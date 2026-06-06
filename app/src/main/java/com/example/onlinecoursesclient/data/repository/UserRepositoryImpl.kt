@@ -6,6 +6,7 @@ import com.example.onlinecoursesclient.data.remote.httpClient
 import com.example.onlinecoursesclient.domain.model.User
 import com.example.onlinecoursesclient.domain.model.UserProfile
 import com.example.onlinecoursesclient.domain.repository.UserRepository
+import com.example.onlinecoursesclient.data.model.CreateUserRequestDto
 import com.example.onlinecoursesclient.utils.TokenManager
 import com.google.firebase.auth.FirebaseAuth
 import io.ktor.client.HttpClient
@@ -17,6 +18,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
+import io.ktor.client.request.post
 
 class UserRepositoryImpl(
     private val client: HttpClient = httpClient
@@ -95,6 +97,26 @@ class UserRepositoryImpl(
 
     override suspend fun logout() {
         auth.signOut()
+    }
+    override suspend fun createUser(email: String, firstName: String, lastName: String) {
+        val token = TokenManager.getFirebaseToken()
+        if (token.isBlank()) throw Exception("Не авторизован")
+
+        val response = client.post("$baseUrl/users/create") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+            setBody(
+                CreateUserRequestDto(
+                    email = email,
+                    firstName = firstName,
+                    lastName = lastName
+                )
+            )
+        }
+
+        if (!response.status.isSuccess()) {
+            throw Exception("Ошибка создания пользователя: ${response.status}")
+        }
     }
 
     private fun UserDto.toUser(): User {

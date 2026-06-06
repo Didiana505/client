@@ -40,6 +40,28 @@ class CoursesViewModel(
     private val _enrollSuccess = MutableStateFlow(false)
     val enrollSuccess: StateFlow<Boolean> = _enrollSuccess.asStateFlow()
 
+    private val _showCancelDialog = MutableStateFlow(false)
+    val showCancelDialog: StateFlow<Boolean> = _showCancelDialog.asStateFlow()
+
+    private val _pendingCancelCourseId = MutableStateFlow<Int?>(null)
+    val pendingCancelCourseId: StateFlow<Int?> = _pendingCancelCourseId.asStateFlow()
+
+    fun onCancelEnrollmentClicked(courseId: Int) {
+        _pendingCancelCourseId.value = courseId
+        _showCancelDialog.value = true
+    }
+
+    fun dismissCancelDialog() {
+        _showCancelDialog.value = false
+        _pendingCancelCourseId.value = null
+    }
+
+    fun confirmCancelEnrollment() {
+        val courseId = _pendingCancelCourseId.value ?: return
+        cancelCurrentUserEnrollment(courseId)
+        dismissCancelDialog()
+    }
+
     fun loadCourses() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -67,7 +89,6 @@ class CoursesViewModel(
             }
         }
     }
-
 
     fun enrollCurrentUser(
         courseId: Int,
